@@ -6,8 +6,8 @@ TAG_RE = re.compile(r'<[^>]+>')
 class Email:
     def __init__(self, email):
         self.subject = get_subject(email)
-        self.senderInfo = get_sender(email)
-        self.receiverInfo = get_receiver(email)
+        self.sender = get_sender(email)
+        self.receiver = get_receiver(email)
         self.time = get_datetime(email)
         self.body = remove_tags(get_payload_content(email))
         self.wordCount = get_word_count(self.body)
@@ -15,7 +15,15 @@ class Email:
         self.flag = False
 
     def to_string(self):
-        return 'Word Count: {}\nCharacter Count: {}\nSubject: {}\nSender: {}\nReceiver: {}\nTime: {}\nBody: {}\n'.format(self.wordCount, self.characterCount, self.subject, self.senderInfo, self.receiverInfo, self.time, self.body)
+        return 'Word Count: {}\nCharacter Count: {}\nSubject: {}\nSender: {}\nReceiver: {}\nTime: {}\nBody: {}\n'.format(self.wordCount, self.characterCount, self.subject, self.sender, self.receiver, self.time, self.body)
+
+    def to_dict(self):
+        d = dict()
+        d['subject'] = self.subject
+        d['time'] = self.time
+        d['sender'] = self.sender
+        d['receiver'] = self.receiver
+        return d
 
 
 def get_payload_content(email):

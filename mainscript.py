@@ -15,7 +15,7 @@ KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpres
 ILLEGAL_CHARACTERS = ('/', ':', '*', '?', '<', '>', '|', '\\', ' ', '"', '-', '\\n')
 
 # Select path for mbox file here
-mbox_filepath = 'C:\\Mail\\BigFile.mbox'
+mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\BigFile.mbox'
 
 # Set flagged output path here
 flagged_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\FlaggedEmails.txt'
@@ -46,11 +46,10 @@ if __name__ == '__main__':
     except IOError:
         print('Output files not found, ignoring...')
 
-
     start_time = time.time()
     print('Running...')
 
-    data_list = []
+    # data_list = []
     emails = mailbox.mbox(mbox_filepath)
     for email in emails:
         flagged = []
@@ -58,6 +57,7 @@ if __name__ == '__main__':
         for word in KEY_WORDS:
             if word in parsed.subject:
                 flagged.append(word)
+                parsed.flag = True
         if len(flagged) != 0:
             file = open(flagged_path, 'a', encoding='utf-8')
             file.write("Flagged Words: {}\n".format(flagged))
@@ -67,11 +67,10 @@ if __name__ == '__main__':
             file = open(normal_path, 'a', encoding='utf-8')
             file.write(parsed.to_string())
             file.close()
-        data_list.append(parsed.to_dict())
+        #data_list.append(parsed.to_dict())
 
     elapsed_time = time.time() - start_time
     print('Parsing Complete')
     print(elapsed_time)
 
-    df = pd.DataFrame(data_list)
-    print(df)
+    #df = pd.DataFrame(data_list)

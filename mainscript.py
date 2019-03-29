@@ -97,11 +97,14 @@ if __name__ == '__main__':
     df['timestamp'] = df.time.map(try_parse_date)
     df['hour'] = df.timestamp.map(lambda x: x.hour)
 
-    freq = 'M' # could also be 'W' (week) or 'D' (day), but month looks nice.
+    freq = 'W' # could also be 'W' (week) or 'D' (day), but month looks nice.
     df = df.set_index('timestamp', drop=False)
     df.index = df.index.to_period(freq)
 
-    mindate = df.timestamp.min()
+    #mindate = df.timestamp.min()
+
+    #Sets the start date of Jan 1 2016
+    mindate = pd.Timestamp('2015-01-01 00:00:00-05:00')
     maxdate = df.timestamp.max()
     pr = pd.period_range(mindate, maxdate, freq=freq)
     # Initialize a new HeatMap dataframe where the indicies are actually Periods of time

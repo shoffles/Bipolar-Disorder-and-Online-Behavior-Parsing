@@ -29,16 +29,13 @@ KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpres
 ILLEGAL_CHARACTERS = ('/', ':', '*', '?', '<', '>', '|', '\\', ' ', '"', '-', '\\n')
 
 # Select path for mbox file here
-
 mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\BigFile.mbox'
 
-
 # Set flagged output path here
-flagged_path = 'C:\\Users\\Thomas\\Programming\\nodeapp\\Bipolar-Disorder-and-Online-Behavior-Parsing\\Outputs'
+flagged_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\FlaggedEmails.txt'
 
 # Set normal output path here
-normal_path = 'C:\\Users\\Thomas\\Programming\\nodeapp\\Bipolar-Disorder-and-Online-Behavior-Parsing\\Outputs'
-
+normal_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\NormalEmails.txt'
 
 
 if __name__ == '__main__':

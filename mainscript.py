@@ -2,8 +2,22 @@ import MboxParser as Mbox
 import mailbox
 import time
 import os
-import pandas as pd
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as dates
+import matplotlib.gridspec as gridspec
+from datetime import timedelta, datetime, date
+
+
+def try_parse_date(d):
+    try:
+        ts = pd.Timestamp(d)
+        if ts.tz is None:
+            ts = ts.tz_localize('UTC')
+        return ts.tz_convert('EST')
+    except:
+        return np.nan
 
 
 # Keywords to flag for
@@ -11,11 +25,13 @@ KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpres
              'Zappos', 'shopping', 'online shopping', 'online store', 'sales', 'store', 'receipt', 'order',
              'credit card', 'debit card', 'shipping', 'gamble', 'casino', 'gambling')
 
-# Illegal Characters for file creation
+# Illegal Characters for file creation, not in use
 ILLEGAL_CHARACTERS = ('/', ':', '*', '?', '<', '>', '|', '\\', ' ', '"', '-', '\\n')
 
 # Select path for mbox file here
-mbox_filepath = 'C:\\Users\\Thomas\\Programming\\nodeapp\\Bipolar-Disorder-and-Online-Behavior-Parsing\\Mail1.mbox'
+
+mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\BigFile.mbox'
+
 
 # Set flagged output path here
 flagged_path = 'C:\\Users\\Thomas\\Programming\\nodeapp\\Bipolar-Disorder-and-Online-Behavior-Parsing\\Outputs'
@@ -46,7 +62,6 @@ if __name__ == '__main__':
     except IOError:
         print('Output files not found, ignoring...')
 
-
     start_time = time.time()
     print('Running...')
 
@@ -58,6 +73,7 @@ if __name__ == '__main__':
         for word in KEY_WORDS:
             if word in parsed.subject:
                 flagged.append(word)
+                parsed.flag = True
         if len(flagged) != 0:
             file = open(flagged_path, 'a', encoding='utf-8')
             file.write("Flagged Words: {}\n".format(flagged))
@@ -73,5 +89,69 @@ if __name__ == '__main__':
     print('Parsing Complete')
     print(elapsed_time)
 
+
+
+
+
+
+    #Visualization start
     df = pd.DataFrame(data_list)
-    print(df)
+    df['timestamp'] = df.time.map(try_parse_date)
+    df['hour'] = df.timestamp.map(lambda x: x.hour)
+
+    freq = 'W' # could also be 'W' (week) or 'D' (day), but month looks nice.
+    df = df.set_index('timestamp', drop=False)
+    df.index = df.index.to_period(freq)
+
+    #mindate = df.timestamp.min()
+
+    #Sets the start date of Jan 1 2016
+    mindate = pd.Timestamp('2015-01-01 00:00:00-05:00')
+    maxdate = df.timestamp.max()
+    pr = pd.period_range(mindate, maxdate, freq=freq)
+    # Initialize a new HeatMap dataframe where the indicies are actually Periods of time
+    # Size the frame anticipating the correct number of rows (periods) and columns (hours in a day)
+    hm = pd.DataFrame(np.zeros([len(pr), 24]) , index=pr)
+
+    for period in pr:
+        # HERE'S where the magic happens...with pandas, when you structure your data correctly,
+        # it can be so terse that you almost aren't sure the program does what it says it does...
+        # For this period (month), find relevant emails and count how many emails were received in
+        # each hour of the day. Takes more words to explain than to code.
+        if period in df.index:
+            hm.ix[period] = df.ix[[period]].hour.value_counts()
+
+            # If for some weird reason there was ever an hour period where you had no email,
+            # fill those NaNs with zeros.
+            hm.fillna(0, inplace=True)
+            # Remove any emails that Timestamp was unable to parse
+
+
+    ### Set up figure
+    fig = plt.figure(figsize=(12,8))
+    # This will be useful laterz
+    gs = gridspec.GridSpec(2, 2, height_ratios=[4,1], width_ratios=[20,1],)
+    gs.update(wspace=0.05)
+
+    ### Plot our heatmap
+    ax = plt.subplot(gs[0])
+    x = dates.date2num([p.start_time for p in pr])
+    t = [datetime(2000, 1, 1, h, 0, 0) for h in range(24)]
+    t.append(datetime(2000, 1, 2, 0, 0, 0)) # add last fencepost
+    y = dates.date2num(t)
+    cm = plt.get_cmap('Oranges')
+    plt.pcolor(x, y, hm.transpose().as_matrix(), cmap=cm)
+
+    ### Now format our axes to be human-readable
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%b %Y'))
+    ax.yaxis.set_major_formatter(dates.DateFormatter('%H:%M'))
+    ax.set_yticks(t[::2])
+    ax.set_xticks(x[::12])
+    ax.set_xlim([x[0], x[-1]])
+    ax.set_ylim([t[0], t[-1]])
+    ax.tick_params(axis='x', pad=14, length=10, direction='inout')
+
+    ### pcolor makes it sooo easy to add a color bar!
+    plt.colorbar(cax=plt.subplot(gs[1]))
+
+    plt.show()

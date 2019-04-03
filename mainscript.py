@@ -15,11 +15,12 @@ def try_parse_date(d):
         ts = pd.Timestamp(d)
         if ts.tz is None:
             ts = ts.tz_localize('UTC')
-        return ts.tz_convert('EST')
+        return ts.tz_convert('UTC')
     except:
         return np.nan
 
 
+#Test
 # Keywords to flag for
 KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpress', 'Costco', 'Kohls', 'Sears',
              'Zappos', 'shopping', 'online shopping', 'online store', 'sales', 'store', 'receipt', 'order',
@@ -29,7 +30,7 @@ KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpres
 ILLEGAL_CHARACTERS = ('/', ':', '*', '?', '<', '>', '|', '\\', ' ', '"', '-', '\\n')
 
 # Select path for mbox file here
-mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\BigFile.mbox'
+mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\SmallFile.mbox'
 
 # Set flagged output path here
 flagged_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\FlaggedEmails.txt'
@@ -40,7 +41,7 @@ normal_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\Norm
 
 if __name__ == '__main__':
 
-    # Checks if output files exist. If existing, gives option to overwrite or append
+    # Checks if output files exist. If existing, gives option to overwrite or append new data
     try:
         if os.path.getsize(flagged_path) != 0 or os.path.getsize(normal_path) != 0:
             answer = input('Output files have data. Overwrite? (y/n): ')
@@ -96,7 +97,9 @@ if __name__ == '__main__':
     df['timestamp'] = df.time.map(try_parse_date)
     df['hour'] = df.timestamp.map(lambda x: x.hour)
 
-    freq = 'W' # could also be 'W' (week) or 'D' (day), but month looks nice.
+    print(df)
+
+    freq = 'W' # could also be 'W' (week) or 'D' (day)
     df = df.set_index('timestamp', drop=False)
     df.index = df.index.to_period(freq)
 
@@ -106,35 +109,26 @@ if __name__ == '__main__':
     mindate = pd.Timestamp('2015-01-01 00:00:00-05:00')
     maxdate = df.timestamp.max()
     pr = pd.period_range(mindate, maxdate, freq=freq)
-    # Initialize a new HeatMap dataframe where the indicies are actually Periods of time
-    # Size the frame anticipating the correct number of rows (periods) and columns (hours in a day)
     hm = pd.DataFrame(np.zeros([len(pr), 24]) , index=pr)
 
     for period in pr:
-        # HERE'S where the magic happens...with pandas, when you structure your data correctly,
-        # it can be so terse that you almost aren't sure the program does what it says it does...
-        # For this period (month), find relevant emails and count how many emails were received in
-        # each hour of the day. Takes more words to explain than to code.
         if period in df.index:
             hm.ix[period] = df.ix[[period]].hour.value_counts()
 
-            # If for some weird reason there was ever an hour period where you had no email,
-            # fill those NaNs with zeros.
             hm.fillna(0, inplace=True)
-            # Remove any emails that Timestamp was unable to parse
+
 
 
     ### Set up figure
     fig = plt.figure(figsize=(12,8))
-    # This will be useful laterz
     gs = gridspec.GridSpec(2, 2, height_ratios=[4,1], width_ratios=[20,1],)
     gs.update(wspace=0.05)
 
-    ### Plot our heatmap
+
     ax = plt.subplot(gs[0])
     x = dates.date2num([p.start_time for p in pr])
     t = [datetime(2000, 1, 1, h, 0, 0) for h in range(24)]
-    t.append(datetime(2000, 1, 2, 0, 0, 0)) # add last fencepost
+    t.append(datetime(2000, 1, 2, 0, 0, 0))
     y = dates.date2num(t)
     cm = plt.get_cmap('Oranges')
     plt.pcolor(x, y, hm.transpose().as_matrix(), cmap=cm)

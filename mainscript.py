@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as dates
 import matplotlib.gridspec as gridspec
+import tkinter as tk
+from tkinter.filedialog import *
 from datetime import timedelta, datetime, date
 
 
@@ -26,31 +28,36 @@ KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpres
              'Zappos', 'shopping', 'online shopping', 'online store', 'sales', 'store', 'receipt', 'order',
              'credit card', 'debit card', 'shipping', 'gamble', 'casino', 'gambling')
 
-# Illegal Characters for file creation, not in use
-ILLEGAL_CHARACTERS = ('/', ':', '*', '?', '<', '>', '|', '\\', ' ', '"', '-', '\\n')
-
-# Select path for mbox file here
-mbox_filepath = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Mbox\\SmallFile.mbox'
-
-# Set flagged output path here
-flagged_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\FlaggedEmails.txt'
-
-# Set normal output path here
-normal_path = 'C:\\Users\\Thomas\\Documents\\Programming\\WHI Lab\\Outputs\\NormalEmails.txt'
 
 
 if __name__ == '__main__':
 
+    try:
+        print('Select a file')
+        file_path = askopenfilename()
+        print(file_path)
+    except IOError:
+        print('Could not load file')
+
+
+    try:
+        print("Please select output file location")
+        output_path = askdirectory()
+        print(output_path)
+    except IOError:
+        print("Could not specify path")
+
+    print(output_path+"FlaggedEmails.txt")
     # Checks if output files exist. If existing, gives option to overwrite or append new data
     try:
-        if os.path.getsize(flagged_path) != 0 or os.path.getsize(normal_path) != 0:
+        if os.path.getsize(output_path+"/FlaggedEmails.txt") != 0 or os.path.getsize(output_path+"/NormalEmails.txt") != 0:
             answer = input('Output files have data. Overwrite? (y/n): ')
             if answer == 'y':
                 answer = input('Are you sure? (y/n): ')
                 if answer == 'y':
-                    file = open(flagged_path, 'w', encoding='utf-8')
+                    file = open(output_path+"FlaggedEmails.txt", 'w', encoding='utf-8')
                     file.close()
-                    file = open(normal_path, 'w', encoding='utf-8')
+                    file = open(output_path+"NormalEmails.txt", 'w', encoding='utf-8')
                     file.close()
                     print('Files wiped')
                 else:
@@ -64,7 +71,7 @@ if __name__ == '__main__':
     print('Running...')
 
     data_list = []
-    emails = mailbox.mbox(mbox_filepath)
+    emails = mailbox.mbox(file_path)
     for email in emails:
         flagged = []
         parsed = Mbox.Email(email)

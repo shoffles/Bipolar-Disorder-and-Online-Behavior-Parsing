@@ -1,8 +1,11 @@
 import re
 from textblob import TextBlob
+from hashlib import sha256
 
 TAG_RE = re.compile(r'<[^>]+>')
-
+KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpress', 'Costco', 'Kohls', 'Sears',
+             'Zappos', 'shopping', 'online shopping', 'online store', 'sales', 'store', 'receipt', 'order',
+             'credit card', 'debit card', 'shipping', 'gamble', 'casino', 'gambling')
 
 class Email:
     def __init__(self, email):
@@ -14,7 +17,7 @@ class Email:
         self.wordCount = get_word_count(self.body)
         self.characterCount = get_character_count(self.body)
         self.sentiment = get_sentiment(self.body)
-        self.flag = False
+        self.flag = check_subject(email)
 
     def to_string(self):
         return 'Word Count: {}\nCharacter Count: {}\nSubject: {}\nSender: {}\nReceiver: {}\nTime: {}\nSentiment: {}\nBody: {}\n'.format(self.wordCount, self.characterCount, self.subject, self.sender, self.receiver, self.time, self.sentiment, self.body)
@@ -50,15 +53,30 @@ def get_character_count(body):
 
 
 def get_sender(email):
-    return email['from']
+    data = email['from']
+    data = str(data)
+    data = data.encode('utf-8')
+    data = sha256(data).digest()
+
+    return data
 
 
 def get_subject(email):
-    return str(email['subject'])
+    data = email['subject']
+    data = str(data)
+    data = data.encode('utf-8')
+    data = sha256(data).digest()
+
+    return data
 
 
 def get_receiver(email):
-    return email['delivered-to']
+    data = email['delivered-to']
+    data = str(data)
+    data = data.encode('utf-8')
+    data = sha256(data).digest()
+
+    return data
 
 
 def get_datetime(email):
@@ -72,3 +90,10 @@ def remove_tags(text):
 def get_sentiment(text):
     blob = TextBlob(text)
     return blob.sentiment
+
+def check_subject(email):
+    data = str(email['subject'])
+    for word in KEY_WORDS:
+        if word in data:
+            return True
+    return False

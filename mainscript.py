@@ -24,9 +24,7 @@ def try_parse_date(d):
 
 #Test
 # Keywords to flag for
-KEY_WORDS = ('Amazon', 'Walmart', 'Target', 'BestBuy', 'Ebay', 'Etsy', 'Alixpress', 'Costco', 'Kohls', 'Sears',
-             'Zappos', 'shopping', 'online shopping', 'online store', 'sales', 'store', 'receipt', 'order',
-             'credit card', 'debit card', 'shipping', 'gamble', 'casino', 'gambling')
+
 
 
 
@@ -47,7 +45,6 @@ if __name__ == '__main__':
     except IOError:
         print("Could not specify path")
 
-    print(output_path+"FlaggedEmails.txt")
     # Checks if output files exist. If existing, gives option to overwrite or append new data
     try:
         if os.path.getsize(output_path+"/FlaggedEmails.txt") != 0 or os.path.getsize(output_path+"/NormalEmails.txt") != 0:
@@ -55,9 +52,9 @@ if __name__ == '__main__':
             if answer == 'y':
                 answer = input('Are you sure? (y/n): ')
                 if answer == 'y':
-                    file = open(output_path+"FlaggedEmails.txt", 'w', encoding='utf-8')
+                    file = open(output_path+"/FlaggedEmails.txt", 'w', encoding='utf-8')
                     file.close()
-                    file = open(output_path+"NormalEmails.txt", 'w', encoding='utf-8')
+                    file = open(output_path+"/NormalEmails.txt", 'w', encoding='utf-8')
                     file.close()
                     print('Files wiped')
                 else:
@@ -73,21 +70,16 @@ if __name__ == '__main__':
     data_list = []
     emails = mailbox.mbox(file_path)
     for email in emails:
-        flagged = []
         parsed = Mbox.Email(email)
-        for word in KEY_WORDS:
-            if word in parsed.subject:
-                flagged.append(word)
-                parsed.flag = True
-        if len(flagged) != 0:
-            file = open(flagged_path, 'a', encoding='utf-8')
-            file.write("Flagged Words: {}\n".format(flagged))
+        if parsed.flag:
+            file = open(output_path+"/FlaggedEmails.txt", 'a', encoding='utf-8')
             file.write(parsed.to_string())
             file.close()
         else:
-            file = open(normal_path, 'a', encoding='utf-8')
+            file = open(output_path+"/NormalEmails.txt", 'a', encoding='utf-8')
             file.write(parsed.to_string())
             file.close()
+
         data_list.append(parsed.to_dict())
 
     elapsed_time = time.time() - start_time
@@ -113,7 +105,7 @@ if __name__ == '__main__':
     #mindate = df.timestamp.min()
 
     #Sets the start date of Jan 1 2016
-    mindate = pd.Timestamp('2015-01-01 00:00:00-05:00')
+    mindate = pd.Timestamp('2018-01-01 00:00:00-05:00')
     maxdate = df.timestamp.max()
     pr = pd.period_range(mindate, maxdate, freq=freq)
     hm = pd.DataFrame(np.zeros([len(pr), 24]) , index=pr)
